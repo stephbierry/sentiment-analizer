@@ -15,6 +15,16 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
+  app.post("/api/analyze", async (req, res) => {
+    try {
+      const handler = (await import("./api/analyze")).default;
+      await handler(req, res);
+    } catch (error) {
+      console.error("API Error:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

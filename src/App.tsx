@@ -5,7 +5,7 @@
 
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { GoogleGenAI } from "@google/genai";
+// import { GoogleGenAI } from "@google/genai";
 import { 
   BarChart3, 
   LayoutDashboard, 
@@ -30,7 +30,7 @@ interface SentimentScores {
   insight: string;
 }
 
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+// const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 export default function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -51,26 +51,19 @@ export default function App() {
     if (!text.trim()) return;
     setLoading(true);
     try {
-      const prompt = `Analyze the sentiment of the following text and provide a result exactly in this JSON format:
-{
-  "positive": number (0-100),
-  "neutral": number (0-100),
-  "negative": number (0-100),
-  "insight": "Short summary in French of why it's positive/negative"
-}
-The three numbers must add up exactly to 100.
-Text: "${text}"`;
-
-      const response = await genAI.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json"
-        }
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text }),
       });
+
+      if (!response.ok) {
+        throw new Error('API request failed');
+      }
       
-      const resultText = response.text || '';
-      const data = JSON.parse(resultText);
+      const data = await response.json();
       setScores(data);
       
       setHistory(prev => [{ 
